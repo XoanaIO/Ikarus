@@ -1,0 +1,68 @@
+buildscript {
+	ext.kotlin_version = '1.1.1'
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+	}
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+
+mainClassName = 'io.xoana.ikarus.MainKt'
+
+defaultTasks 'run'
+
+sourceSets {
+	//main.java.srcDirs += 'src/main/java/' // 'src/'
+	main.kotlin.srcDirs += 'src/main/kotlin/'
+	test.java.srcDirs += 'src/test/java/'
+}
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+	// Use 'jcenter' for resolving your dependencies.
+	// You can declare any Maven/Ivy/file repository here.
+	mavenCentral()
+	jcenter()
+	maven {
+		url "http://dl.bintray.com/kyonifer/maven" 
+		jcenter()
+	}
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+	// The production code uses the SLF4J logging API at compile time
+	compile 'org.slf4j:slf4j-api:1.7.21'
+
+	// Declare the dependency for your favourite test framework you want to use in your tests.
+	// TestNG is also supported by the Gradle Test task. Just change the
+	// testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
+	// 'test.useTestNG()' to your build script.
+	//testCompile 'junit:junit:4.12'
+	testCompile "org.jetbrains.kotlin:kotlin-test"
+	testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+
+	// Kotlin standard library.
+	//compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+	// Enhanced version targeting JRE8.
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+
+	// Matrix library.
+	compile group: "koma", name:"backend-matrix-mtj", version: "0.10"
+	compile group: "koma", name:"core", version: "0.10"
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': 'MainKt'
+	}
+
+	// This line of code recursively collects and copies all of a project's files
+	// and adds them to the JAR itself. One can extend this task, to skip certain 
+	// files or particular types at will
+	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
