@@ -3,7 +3,7 @@ package io.xoana.ikarus.nodes;
 import koma.*;
 import koma.matrix.*
 
-abstract class Node(val rows:Int, val columns:Int, val inputs:Array<Node>) {
+abstract class Node(var rows:Int, var columns:Int, var inputs:Array<Node>) {
 
 	var id=-1
 	var name=""
@@ -43,14 +43,28 @@ abstract class Node(val rows:Int, val columns:Int, val inputs:Array<Node>) {
 			val name = tokens[2]
 			val rows = tokens[3].toInt()
 			val cols = tokens[4].toInt()
-			val inputs = tokens[5].split(',').map { inputIdToken -> other[inputIdToken.toInt()] }
+			val inputs:Array<Node> = when(tokens[5]) {
+				"" -> arrayOf()
+				else -> tokens[5].split(',').map { inputIdToken -> other[inputIdToken.toInt()] }.toTypedArray()
+			}
 			val data = tokens[6]
-			val n = when(className) {
+			val n = when(className.substringAfterLast('.')) {
+				"AddNode" -> AddNode(inputs[0], inputs[1])
+				"MatrixMultiplyNode" -> MatrixMultiplyNode(inputs[0], inputs[1])
+				"ElementMultiplyNode" -> ElementMultiplyNode(inputs[0], inputs[1])
+				"SubtractNode" -> SubtractNode(inputs[0], inputs[1])
+				"VariableNode" -> VariableNode(rows, cols)
 				"InputNode" -> InputNode(rows, cols)
+				::TanhNode.javaClass.canonicalName -> TanhNode(inputs[0])
 				else -> {
 					TODO()
 				}
 			}
+			n.id = id
+			n.name = name
+			n.rows = rows
+			n.columns = cols
+			n.inputs = inputs
 			n.stringToData(data)
 			return n
 		}

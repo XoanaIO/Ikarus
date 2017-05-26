@@ -17,4 +17,9 @@ class VariableNode(rows:Int, columns:Int, weightScale:Double = 0.1) : Node(rows,
 	override fun reverse(forward: Array<Matrix<Double>>, adjoint: Matrix<Double>, cachedOutput: Matrix<Double>?): Array<Matrix<Double>> {
 		return arrayOf()
 	}
+
+	override fun dataToString(): String = data.getDoubleData().joinToString()
+	override fun stringToData(s:String) {
+		this.data = create(s.split(',').map{ strVal -> strVal.toDouble() }.toDoubleArray(), this.rows, this.columns)
+	}
 }

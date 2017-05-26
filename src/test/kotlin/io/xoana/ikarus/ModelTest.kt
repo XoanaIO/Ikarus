@@ -4,9 +4,12 @@ import io.xoana.ikarus.Model
 import koma.*
 import koma.matrix.*
 import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Test
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
+import java.io.File
+import java.nio.file.Path
 import java.util.*
 
 /**
@@ -14,16 +17,38 @@ import java.util.*
  */
 class ModelTest {
 	@Test
+	fun verifySaveRestore() {
+		val modelA = Model(1, 20);
+		modelA.addConvLayer(1, 5, 1, 3, Model.Activation.NONE)
+		modelA.addDenseLayer(100, Model.Activation.TANH)
+		modelA.addDenseLayer(100, Model.Activation.RELU)
+
+		val modelB = Model(1, 1)
+		println(modelA.serializeToString())
+		modelB.restoreFromString(modelA.serializeToString())
+
+		assertEquals(modelA.outputNode!!.rows, modelB.outputNode!!.rows)
+		assertEquals(modelA.outputNode!!.columns, modelB.outputNode!!.columns)
+	}
+
+	@Test
 	fun convolutionTest() {
+		// If the MNIST data doesn't work we'll skip this test.
+		val mnistIn = File("asdf")
+		org.junit.Assume.assumeTrue(mnistIn.isFile() && mnistIn.canRead())
+
 		val shapeDetector = Model(128, 128)
-		//shapeDetector.addConvLayer(5, 5, 2, 2, Model.Activation.TANH)
+		shapeDetector.addConvLayer(3, 3, 2, 2, Model.Activation.TANH)
+		shapeDetector.addConvLayer(3, 3, 2, 2, Model.Activation.TANH)
+		shapeDetector.addConvLayer(3, 3, 2, 2, Model.Activation.TANH)
+		shapeDetector.addConvLayer(3, 3, 2, 2, Model.Activation.TANH)
 		shapeDetector.addFlattenLayer()
 		shapeDetector.addDenseLayer(128, Model.Activation.TANH)
 		shapeDetector.addDenseLayer(2, Model.Activation.SIGMOID)
 
 		// Train model.  First run is a bit slow.
 		val random = Random()
-		for(i in 0 until 100000) {
+		for(i in 0 until 1000) {
 			//val img = BufferedImage(128, 128, BufferedImage.TYPE_BYTE_GRAY)
 			//val gfx:Graphics2D = img.graphics as Graphics2D
 			//gfx.drawOval(32, 32, 64, 64)

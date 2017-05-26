@@ -90,18 +90,18 @@ class NodeTests {
 		assertEquals(vs.columns, 3)
 
 		val x1Data = mat[
-			1, 2, 3 end
-			4, 5, 6
-		]
+				1, 2, 3 end
+						4, 5, 6
+				]
 
 		val x2Data = mat[
-			9, 8, 7 end
-			6, 5, 4 end
-			3, 2, 1 end
-			0, 1, 2
-		]
+				9, 8, 7 end
+						6, 5, 4 end
+						3, 2, 1 end
+						0, 1, 2
+				]
 
-		val feedDict = mapOf<Node,Matrix<Double>>(x1 to x1Data, x2 to x2Data)
+		val feedDict = mapOf<Node, Matrix<Double>>(x1 to x1Data, x2 to x2Data)
 
 		val grads = g.getGradient(feedDict, null, vs)
 
@@ -109,8 +109,8 @@ class NodeTests {
 		assertEquals(grads[x1.id].numCols(), x1.columns)
 		assertEquals(grads[x2.id].numRows(), x2.rows)
 		assertEquals(grads[x2.id].numCols(), x2.columns)
-		assertEquals(grads[x1.id].elementSum(), x1.rows*x1.columns.toDouble(), 1e-8) // 1 for each element.
-		assertEquals(grads[x2.id].elementSum(), x2.rows*x2.columns.toDouble(), 1e-8)
+		assertEquals(grads[x1.id].elementSum(), x1.rows * x1.columns.toDouble(), 1e-8) // 1 for each element.
+		assertEquals(grads[x2.id].elementSum(), x2.rows * x2.columns.toDouble(), 1e-8)
 
 		// Horizontal concat test.
 		val x3 = InputNode(3, 2)
@@ -122,9 +122,9 @@ class NodeTests {
 		assertEquals(hs.rows, 3)
 		assertEquals(hs.columns, 6)
 
-		val grads2 = g2.getGradient(mapOf<Node,Matrix<Double>>(
-			x3 to mat[1, 2 end 3, 4 end 5, 6],
-			x4 to mat[9, 8, 7, 6 end 5, 4, 3, 2 end 1, 0, 0, 0]
+		val grads2 = g2.getGradient(mapOf<Node, Matrix<Double>>(
+				x3 to mat[1, 2 end 3, 4 end 5, 6],
+				x4 to mat[9, 8, 7, 6 end 5, 4, 3, 2 end 1, 0, 0, 0]
 		), null, hs)
 
 		assertEquals(grads2[x3.id].numRows(), x3.rows)
@@ -133,4 +133,10 @@ class NodeTests {
 		assertEquals(grads2[x4.id].numCols(), x4.columns)
 	}
 
+	@Test
+	fun testSerialization() {
+		val v = VariableNode(5, 5, 0.5)
+		val u = Node.fromString(v.toString(), listOf<Node>())
+		assertArrayEquals(v.data.getDoubleData(), (u as VariableNode).data.getDoubleData(), 1.0e-6)
+	}
 }
