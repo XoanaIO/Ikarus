@@ -22,6 +22,7 @@ class ModelTest {
 		modelA.addConvLayer(1, 5, 1, 3, Model.Activation.NONE)
 		modelA.addDenseLayer(100, Model.Activation.TANH)
 		modelA.addDenseLayer(100, Model.Activation.RELU)
+		modelA.fit(DoubleArray(20), DoubleArray(100), 0.1, Model.Loss.ABS)
 
 		val modelB = Model(1, 1)
 		println(modelA.serializeToString())
