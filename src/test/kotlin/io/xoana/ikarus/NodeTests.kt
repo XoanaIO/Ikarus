@@ -77,4 +77,60 @@ class NodeTests {
 		//testGradient(ReLUNode(x), values, 0.01, 0.2)
 	}
 
+	@Test
+	fun testShapeChanges() {
+		// Verical test.
+		val x1 = InputNode(2, 3)
+		val x2 = InputNode(4, 3)
+		val vs = VStackNode(x1, x2)
+		val g = Graph()
+		g.addNode(vs)
+
+		assertEquals(vs.rows, 6)
+		assertEquals(vs.columns, 3)
+
+		val x1Data = mat[
+			1, 2, 3 end
+			4, 5, 6
+		]
+
+		val x2Data = mat[
+			9, 8, 7 end
+			6, 5, 4 end
+			3, 2, 1 end
+			0, 1, 2
+		]
+
+		val feedDict = mapOf<Node,Matrix<Double>>(x1 to x1Data, x2 to x2Data)
+
+		val grads = g.getGradient(feedDict, null, vs)
+
+		assertEquals(grads[x1.id].numRows(), x1.rows)
+		assertEquals(grads[x1.id].numCols(), x1.columns)
+		assertEquals(grads[x2.id].numRows(), x2.rows)
+		assertEquals(grads[x2.id].numCols(), x2.columns)
+		assertEquals(grads[x1.id].elementSum(), x1.rows*x1.columns.toDouble(), 1e-8) // 1 for each element.
+		assertEquals(grads[x2.id].elementSum(), x2.rows*x2.columns.toDouble(), 1e-8)
+
+		// Horizontal concat test.
+		val x3 = InputNode(3, 2)
+		val x4 = InputNode(3, 4)
+		val hs = HStackNode(x3, x4)
+		val g2 = Graph()
+		g2.addNode(hs)
+
+		assertEquals(hs.rows, 3)
+		assertEquals(hs.columns, 6)
+
+		val grads2 = g2.getGradient(mapOf<Node,Matrix<Double>>(
+			x3 to mat[1, 2 end 3, 4 end 5, 6],
+			x4 to mat[9, 8, 7, 6 end 5, 4, 3, 2 end 1, 0, 0, 0]
+		), null, hs)
+
+		assertEquals(grads2[x3.id].numRows(), x3.rows)
+		assertEquals(grads2[x3.id].numCols(), x3.columns)
+		assertEquals(grads2[x4.id].numRows(), x4.rows)
+		assertEquals(grads2[x4.id].numCols(), x4.columns)
+	}
+
 }

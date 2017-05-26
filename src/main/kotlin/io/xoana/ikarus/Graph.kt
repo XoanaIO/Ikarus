@@ -9,7 +9,7 @@ import java.util.*
 /**
  * Created by Joseph Catrambone on 2017/05/24.
  */
-class Graph {
+open class Graph {
 	internal var nodes: MutableList<Node> = mutableListOf<Node>()
 
 	fun addNode(n: Node): Node {
@@ -24,7 +24,7 @@ class Graph {
 		return n // A pass-through.
 	}
 
-	fun serializeToString(): String {
+	open fun serializeToString(): String {
 		val s = StringBuilder()
 		for (n in nodes) {
 			s.append(n.toString() + "\n")
@@ -32,7 +32,7 @@ class Graph {
 		return s.toString()
 	}
 
-	fun restoreFromString(s: String) {
+	open fun restoreFromString(s: String) {
 		var lines = s.split("[\\r\\n]+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray() // Also removes empty lines.
 		// Check for blank first line.
 		if (lines[0] == "") {
