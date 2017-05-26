@@ -7,7 +7,7 @@ import koma.*
  * Created by jcatrambone on 5/24/17.
  */
 
-class RepeatNode(input:Node, val hRepeats: Int, val vRepeats: Int) : Node(input.rows*vRepeats, input.columns*hRepeats, arrayOf(input)) {
+class RepeatNode(input:Node, var hRepeats: Int, var vRepeats: Int) : Node(input.rows*vRepeats, input.columns*hRepeats, arrayOf(input)) {
 	override fun forward(args:Array<Matrix<Double>>): Matrix<Double> {
 		return fill(args[0].numRows()*vRepeats, args[0].numCols()*hRepeats, { i,j -> args[0][i%args[0].numRows(), j%args[0].numCols()]})
 	}
@@ -16,6 +16,15 @@ class RepeatNode(input:Node, val hRepeats: Int, val vRepeats: Int) : Node(input.
 		val ret = zeros(forward[0].numRows(), forward[0].numCols())
 		adjoint.forEachIndexed({ i, j, v -> ret[i%ret.numRows(), j%ret.numCols()] += v})
 		return arrayOf(ret)
+	}
+
+	override fun dataToString(): String = "$hRepeats,$vRepeats"
+	override fun stringToData(s:String) {
+		val tokens = s.split(",")
+		hRepeats = tokens[0].toInt()
+		vRepeats = tokens[1].toInt()
+		this.rows = inputs[0].rows*vRepeats
+		this.columns = inputs[0].columns*hRepeats
 	}
 }
 

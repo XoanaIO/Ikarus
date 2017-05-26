@@ -79,11 +79,11 @@ class Convolution2DNode(input: Node, kernel: Node, var rowStride: Int, var colum
 	}
 
 	// Used to augment serialization.
-	fun extraDataToString(): String {
+	override fun dataToString(): String {
 		return rowStride.toString() + "," + columnStride
 	}
 
-	fun extraDataFromString(s: String) {
+	override fun stringToData(s: String) {
 		val tokens = s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
 		this.rowStride = Integer.parseInt(tokens[0])
 		this.columnStride = Integer.parseInt(tokens[1])
@@ -182,11 +182,11 @@ class Deconvolution2DNode(input:Node, kernel:Node, var rowStride:Int, var column
 	}
 
 	// Used to augment serialization.
-	fun extraDataToString(): String {
+	override fun dataToString(): String {
 		return padding.toString() + "," + rowStride + "," + columnStride
 	}
 
-	fun extraDataFromString(s: String) {
+	override fun stringToData(s: String) {
 		val tokens = s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
 		this.padding = Integer.parseInt(tokens[0])
 		this.rowStride = Integer.parseInt(tokens[1])

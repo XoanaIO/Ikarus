@@ -48,14 +48,39 @@ abstract class Node(var rows:Int, var columns:Int, var inputs:Array<Node>) {
 				else -> tokens[5].split(',').map { inputIdToken -> other[inputIdToken.toInt()] }.toTypedArray()
 			}
 			val data = tokens[6]
+			// TODO: We should really do this by reflection, even if it means including the Kotlin reflection lib.
 			val n = when(className.substringAfterLast('.')) {
+				// Binary ops
 				"AddNode" -> AddNode(inputs[0], inputs[1])
 				"MatrixMultiplyNode" -> MatrixMultiplyNode(inputs[0], inputs[1])
 				"ElementMultiplyNode" -> ElementMultiplyNode(inputs[0], inputs[1])
 				"SubtractNode" -> SubtractNode(inputs[0], inputs[1])
+				// Special ops
 				"VariableNode" -> VariableNode(rows, cols)
 				"InputNode" -> InputNode(rows, cols)
-				::TanhNode.javaClass.canonicalName -> TanhNode(inputs[0])
+				//::TanhNode.javaClass.canonicalName -> TanhNode(inputs[0])
+				// Unary ops
+				"AbsNode" -> AbsNode(inputs[0])
+				"ExpNode" -> ExpNode(inputs[0])
+				"InverseNode" -> InverseNode(inputs[0])
+				"LogNode" -> LogNode(inputs[0])
+				"NegateNode" -> NegateNode(inputs[0])
+				"TanhNode" -> TanhNode(inputs[0])
+				"SigmoidNode" -> SigmoidNode(inputs[0])
+				"SinNode" -> SinNode(inputs[0])
+				"PowerNode" -> PowerNode(inputs[0], 0.0)
+				"ReLUNode" -> ReLUNode(inputs[0])
+				"AddConstantNode" -> AddConstantNode(inputs[0], 0.0)
+				// Reshape Nodes
+				"RepeatNode" -> RepeatNode(inputs[0], rows, cols)
+				"HStackNode" -> HStackNode(inputs[0], inputs[1])
+				"VStackNode" -> VStackNode(inputs[0], inputs[1])
+				"ReshapeNode" -> ReshapeNode(inputs[0], rows, cols)
+				"RowSumNode" -> RowSumNode(inputs[0])
+				// Convolution Nodes
+				"Convolution2DNode" -> Convolution2DNode(inputs[0], inputs[1], 1, 1) // The 1,1 will get fixed below.
+				"Deconvolution2DNode" -> Deconvolution2DNode(inputs[0], inputs[1], 1, 1)
+				// Everything else
 				else -> {
 					TODO()
 				}
