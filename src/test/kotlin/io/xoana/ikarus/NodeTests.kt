@@ -224,6 +224,5 @@ class NodeTests {
 		val convNode = Convolution2DNode(input, kernel, 3, 3)
 		val act1 = TanhNode(convNode)
 		val flat = ReshapeNode(act1, 1, -1)
-		val weightFlat
 	}
 }
