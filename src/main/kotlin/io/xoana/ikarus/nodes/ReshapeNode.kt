@@ -97,3 +97,13 @@ class RowSumNode(input:Node) : Node(input.rows, 1, arrayOf(input)) {
 		)
 	}
 }
+
+class CollapseSumNode(input:Node) : Node(1, 1, arrayOf(input)) {
+	override fun forward(args:Array<Matrix<Double>>): Matrix<Double> {
+		return mat[args[0].elementSum()]
+	}
+
+	override fun reverse(forward: Array<Matrix<Double>>, adjoint: Matrix<Double>, cachedOutput: Matrix<Double>?): Array<Matrix<Double>> {
+		return arrayOf(fill(forward[0].numRows(), forward[0].numCols(), adjoint[0,0]))
+	}
+}

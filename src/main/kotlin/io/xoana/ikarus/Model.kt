@@ -1,5 +1,6 @@
-package io.xoana.ikarus
+package io.xoana.ikarus.models
 
+import io.xoana.ikarus.Graph
 import koma.*
 import koma.matrix.*
 
@@ -12,7 +13,7 @@ import io.xoana.ikarus.optimizers.SGD
 /**
  * Created by jcatrambone on 5/25/17.
  */
-class Model(inputRows: Int, inputColumns: Int) : Graph() {
+open class Model(inputRows: Int, inputColumns: Int) : Graph() {
 	//public enum Optimizer { SGD, MOMENTUM, ADAGRAD };
 	enum class Activation {
 		NONE, TANH, SIGMOID, RELU
@@ -76,13 +77,13 @@ class Model(inputRows: Int, inputColumns: Int) : Graph() {
 		// If this is the first time we've run fit, we'll need to make our loss node.
 		if (targetNode == null || lossNode == null) {
 			// TODO: Sanity check if target node size changed.
-			targetNode = InputNode(1, outputNode!!.columns)
+			targetNode = InputNode(outputNode!!.rows, outputNode!!.columns)
 			val diff = SubtractNode(outputNode!!, targetNode!!)
 			when (loss) {
-				Model.Loss.ABS -> lossNode = AbsNode(diff)
-				Model.Loss.SQUARED -> lossNode = PowerNode(diff, 2.0)
+				Loss.ABS -> lossNode = AbsNode(diff)
+				Loss.SQUARED -> lossNode = PowerNode(diff, 2.0)
 			}
-			lossNode = RowSumNode(lossNode!!) // Roll up into a single value.
+			lossNode = CollapseSumNode(lossNode!!) // Roll up into a single value.
 			addNode(lossNode!!)
 			// Need these for save/restore.
 			inputNode!!.name = "input"
@@ -93,8 +94,8 @@ class Model(inputRows: Int, inputColumns: Int) : Graph() {
 	}
 
 	fun fit(x: DoubleArray, y: DoubleArray, learningRate: Double, loss: Loss) {
-		assert(x.size == this.inputNode!!.rows * this.inputNode!!.columns)
 		finalizeNetwork(loss)
+		assert(x.size == this.inputNode!!.rows * this.inputNode!!.columns)
 
 		// Calculate the difference and apply the gradient.
 		val inputFeed = mapOf<Node, Matrix<Double>>(
@@ -124,11 +125,11 @@ class Model(inputRows: Int, inputColumns: Int) : Graph() {
 		finalizeNetwork(loss)
 
 		// This will accumulate our gradients below.
-		val grads = mutableListOf<Array<Matrix<Double>>>()
+		val grads = Array<Array<Matrix<Double>>>(targetNode!!.id+1, { _ -> arrayOf<Matrix<Double>>() } )
 
 		// Calculate all the gradients in parallel.
 		IntStream.range(0, x.size).parallel().forEach { i ->
-			val inputFeed = mapOf<Node,Matrix<Double>>(
+			val inputFeed = mapOf<Node, Matrix<Double>>(
 				inputNode!! to create(x[i], inputNode!!.rows, inputNode!!.columns),
 				targetNode!! to create(y[i], targetNode!!.rows, targetNode!!.columns)
 			)
@@ -161,12 +162,11 @@ class Model(inputRows: Int, inputColumns: Int) : Graph() {
 
 	private fun makeActivationNode(n: Node, act: Activation): Node? {
 		when (act) {
-			Model.Activation.NONE -> return n
-			Model.Activation.RELU -> return ReLUNode(n)
-			Model.Activation.SIGMOID -> return SigmoidNode(n)
-			Model.Activation.TANH -> return TanhNode(n)
+			Activation.NONE -> return n
+			Activation.RELU -> return ReLUNode(n)
+			Activation.SIGMOID -> return SigmoidNode(n)
+			Activation.TANH -> return TanhNode(n)
 		}
-		return null
 	}
 
 	fun addDenseLayer(hiddenSize: Int, act: Activation) {

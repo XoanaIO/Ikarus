@@ -1,6 +1,5 @@
 package io.xoana.ikarus.nodes;
 
-import koma.*;
 import koma.matrix.*
 
 abstract class Node(var rows:Int, var columns:Int, var inputs:Array<Node>) {
@@ -77,6 +76,7 @@ abstract class Node(var rows:Int, var columns:Int, var inputs:Array<Node>) {
 				"VStackNode" -> VStackNode(inputs[0], inputs[1])
 				"ReshapeNode" -> ReshapeNode(inputs[0], rows, cols)
 				"RowSumNode" -> RowSumNode(inputs[0])
+				"CollapseSumNode" -> CollapseSumNode(inputs[0])
 				// Convolution Nodes
 				"Convolution2DNode" -> Convolution2DNode(inputs[0], inputs[1], 1, 1) // The 1,1 will get fixed below.
 				"Deconvolution2DNode" -> Deconvolution2DNode(inputs[0], inputs[1], 1, 1)

@@ -76,19 +76,27 @@ class GraphTest {
 			var exLoss = g.getOutput(mapOf<Node,DoubleArray>(
 					x to doubleArrayOf(0.0, 0.0)
 			), out)
+			print("0^0: ${exLoss[0]}\t")
 			accum += (0.0 - exLoss[0]).abs()
+
 			exLoss = g.getOutput(mapOf<Node,DoubleArray>(
 					x to doubleArrayOf(0.0, 1.0)
 			), out)
+			print("0^1: ${exLoss[0]}\t")
 			accum += (1.0-exLoss[0]).abs()
+
 			exLoss = g.getOutput(mapOf<Node,DoubleArray>(
 					x to doubleArrayOf(1.0, 0.0)
 			), out)
+			print("1^0: ${exLoss[0]}\t")
 			accum += (1.0-exLoss[0]).abs()
+
 			exLoss = g.getOutput(mapOf<Node,DoubleArray>(
 					x to doubleArrayOf(1.0, 1.0)
 			), out)
+			print("1^1: ${exLoss[0]}\t")
 			accum += (0.0 - exLoss[0]).abs()
+			
 			println("Loss: ${accum}")
 		}
 	}

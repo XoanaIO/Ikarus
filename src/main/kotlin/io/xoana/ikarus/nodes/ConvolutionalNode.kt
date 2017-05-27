@@ -39,8 +39,8 @@ class Convolution2DNode(input: Node, kernel: Node, var rowStride: Int, var colum
 				for (rk in 0..kernel.numRows() - 1) {
 					for (ck in 0..kernel.numCols() - 1) {
 						// Delta position
-						val inR = rk - kernel.numRows() / 2 + inRCenter
-						val inC = ck - kernel.numCols() / 2 + inCCenter
+						val inR = rk - (kernel.numRows() / 2) + inRCenter
+						val inC = ck - (kernel.numCols() / 2) + inCCenter
 						if (inR >= 0 && inR < input.numRows() && inC >= 0 && inC < input.numCols()) {
 							accumulator += input.get(inR, inC) * kernel.get(rk, ck)
 						}
@@ -65,8 +65,8 @@ class Convolution2DNode(input: Node, kernel: Node, var rowStride: Int, var colum
 				// Center kernel at r,c
 				for (rk in 0..kernel.numRows() - 1) {
 					for (ck in 0..kernel.numCols() - 1) {
-						val outRow = rk - kernel.numRows() / 2 + r * rowStride
-						val outColumn = ck - kernel.numCols() / 2 + c * columnStride
+						val outRow = rk - (kernel.numRows() / 2) + (r * rowStride)
+						val outColumn = ck - (kernel.numCols() / 2) + (c * columnStride)
 						if (outRow >= 0 && outRow < inputAdjoint.numRows() && outColumn >= 0 && outColumn < inputAdjoint.numCols()) {
 							inputAdjoint.set(outRow, outColumn, inputAdjoint.get(outRow, outColumn) + adjoint.get(r, c) * kernel.get(rk, ck))
 							kernelAdjoint.set(rk, ck, kernelAdjoint.get(rk, ck) + adjoint.get(r, c) * input.get(outRow, outColumn))
@@ -130,8 +130,8 @@ class Deconvolution2DNode(input:Node, kernel:Node, var rowStride:Int, var column
 				// Iterate over the kernel and use that to apply our output.
 				for (kRow in 0..kernel.numRows() - 1) {
 					for (kCol in 0..kernel.numCols() - 1) {
-						val outRow = outcenterRow - kernel.numRows() / 2 + kRow
-						val outCol = outcenterCol - kernel.numCols() / 2 + kCol
+						val outRow = outcenterRow - (kernel.numRows() / 2) + kRow
+						val outCol = outcenterCol - (kernel.numCols() / 2) + kCol
 
 						if (outRow >= 0 && outRow < output.numRows() && outCol >= 0 && outCol < output.numCols()) {
 							output.set(outRow, outCol, output.get(outRow, outCol) + kernel.get(kRow, kCol) * input.get(inRow, inCol))
@@ -161,8 +161,8 @@ class Deconvolution2DNode(input:Node, kernel:Node, var rowStride:Int, var column
 				// Iterate over the kernel and use that to apply our output.
 				for (kRow in 0..kernel.numRows() - 1) {
 					for (kCol in 0..kernel.numCols() - 1) {
-						val outRow = outcenterRow - kernel.numRows() / 2 + kRow
-						val outCol = outcenterCol - kernel.numCols() / 2 + kCol
+						val outRow = outcenterRow - (kernel.numRows() / 2) + kRow
+						val outCol = outcenterCol - (kernel.numCols() / 2) + kCol
 
 						if (outRow >= 0 && outRow < adjoint.numRows() && outCol >= 0 && outCol < adjoint.numCols()) {
 							// output.set(outRow, outCol, output.get(outRow, outCol) + kernel.get(kRow, kCol)*input.get(inRow, inCol));

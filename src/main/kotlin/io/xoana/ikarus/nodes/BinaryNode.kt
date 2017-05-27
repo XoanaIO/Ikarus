@@ -11,7 +11,7 @@ class AddNode(left:Node, right:Node) : Node(left.rows, left.columns, arrayOf(lef
 	}
 
 	override fun reverse(forward: Array<Matrix<Double>>, adjoint: Matrix<Double>, cachedOutput: Matrix<Double>?): Array< Matrix<Double> > {
-		return arrayOf(forward[1].elementTimes(adjoint), forward[0].elementTimes(adjoint))
+		return arrayOf(adjoint, adjoint)
 	}
 }
 
@@ -47,6 +47,6 @@ class SubtractNode(left:Node, right:Node) : Node(left.rows, left.columns, arrayO
 	}
 
 	override fun reverse(forward: Array<Matrix<Double>>, adjoint: Matrix<Double>, cachedOutput: Matrix<Double>?): Array< Matrix<Double> > {
-		return arrayOf(adjoint, -adjoint) // TODO: Check this for accuracy.
+		return arrayOf(adjoint, -adjoint)
 	}
 }

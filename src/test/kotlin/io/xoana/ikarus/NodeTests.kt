@@ -74,7 +74,21 @@ class NodeTests {
 		// Has a discontinuity at zero.
 		values = doubleArrayOf(-10.0, -5.0, -2.0, -1.0, -0.5, 0.5, 1.0, 2.0, 5.0, 10.0)
 		testGradient(AbsNode(x), values, 0.01, 0.2)
-		//testGradient(ReLUNode(x), values, 0.01, 0.2)
+
+		// Not valid for values less than zero
+		values = doubleArrayOf(0.1, 1.0, 2.0, 5.0, 10.0, 100.0, 1000.0, 10000.0, 1000000.0, 1000000000.0)
+		testGradient(ReLUNode(x), values, 0.001, 0.2)
+	}
+
+	@Test
+	fun testBinaryOperations() {
+		val x1 = InputNode(5, 5)
+		val x2 = InputNode(5, 5)
+		val sum = AddNode(x1, x2)
+		var g = Graph()
+		g.addNode(sum)
+
+
 	}
 
 	@Test
@@ -83,7 +97,7 @@ class NodeTests {
 		val x1 = InputNode(2, 3)
 		val x2 = InputNode(4, 3)
 		val vs = VStackNode(x1, x2)
-		val g = Graph()
+		var g = Graph()
 		g.addNode(vs)
 
 		assertEquals(vs.rows, 6)
@@ -116,13 +130,13 @@ class NodeTests {
 		val x3 = InputNode(3, 2)
 		val x4 = InputNode(3, 4)
 		val hs = HStackNode(x3, x4)
-		val g2 = Graph()
-		g2.addNode(hs)
+		g = Graph()
+		g.addNode(hs)
 
 		assertEquals(hs.rows, 3)
 		assertEquals(hs.columns, 6)
 
-		val grads2 = g2.getGradient(mapOf<Node, Matrix<Double>>(
+		val grads2 = g.getGradient(mapOf<Node, Matrix<Double>>(
 				x3 to mat[1, 2 end 3, 4 end 5, 6],
 				x4 to mat[9, 8, 7, 6 end 5, 4, 3, 2 end 1, 0, 0, 0]
 		), null, hs)
@@ -131,6 +145,26 @@ class NodeTests {
 		assertEquals(grads2[x3.id].numCols(), x3.columns)
 		assertEquals(grads2[x4.id].numRows(), x4.rows)
 		assertEquals(grads2[x4.id].numCols(), x4.columns)
+
+		// Row-sum test.
+		val x5 = InputNode(2, 10)
+		val rs = RowSumNode(x5)
+		g = Graph()
+		g.addNode(rs)
+
+		val feedDict3 = mapOf<Node, Matrix<Double>>(
+			x5 to mat[
+				1, 2, 3, 4, 5, 6, 7, 8, 9, 10 end
+				-1, -2, -3, -4, -5, -6, -7, -8, -9, -10
+			]
+		)
+		val fwd3 = g.getOutput(mapOf<Node, DoubleArray>(x5 to feedDict3[x5]!!.getDoubleData()), rs)
+		val grads3 = g.getGradient(feedDict3, null, rs)
+
+		assertEquals(fwd3.size, 2) // Two rows
+		assertEquals(fwd3[0], 55.0, 1e-6)
+		assertEquals(fwd3[1], -55.0, 1e-6)
+		assertArrayEquals(grads3[x5.id].getDoubleData(), ones(2,10).getDoubleData(), 1e-6)
 	}
 
 	@Test
@@ -138,5 +172,58 @@ class NodeTests {
 		val v = VariableNode(5, 5, 0.5)
 		val u = Node.fromString(v.toString(), listOf<Node>())
 		assertArrayEquals(v.data.getDoubleData(), (u as VariableNode).data.getDoubleData(), 1.0e-6)
+	}
+
+	@Test
+	fun testConvolution() {
+		val input = InputNode(200,200)
+		val kernel = VariableNode(10, 10)
+		val convNode = Convolution2DNode(input, kernel, 10, 10)
+		val g = Graph()
+		g.addNode(convNode)
+
+		kernel.data = ones(10, 10)
+
+		assertEquals(convNode.rows, 20)
+		assertEquals(convNode.columns, 20)
+
+		val res = g.getOutput(mapOf<Node,DoubleArray>(
+			input to DoubleArray(200*200, { i -> if(i%200 < 20 && i/200 < 20) { 1.0 } else { 0.0 }}) // Color top-left as 'white'.
+		), convNode)
+
+		val expectation = mat[
+			25, 50, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			50, 100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			25, 50, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 end
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		]
+
+		assertArrayEquals(res, expectation.getDoubleData(), 1.0e-6)
+	}
+
+	@Test
+	fun testVAE() {
+		val input = InputNode(100, 100)
+		val kernel = VariableNode(5, 5)
+		val convNode = Convolution2DNode(input, kernel, 3, 3)
+		val act1 = TanhNode(convNode)
+		val flat = ReshapeNode(act1, 1, -1)
+		val weightFlat
 	}
 }
